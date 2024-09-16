@@ -1,0 +1,144 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
+typedef enum
+{
+    FALSE = 0,
+    TRUE = 1
+} bool_t;
+
+typedef struct
+{
+    int key;
+    int value;
+    bool_t valid;
+} entry_t;
+
+typedef struct
+{
+    entry_t *data;
+    size_t count;
+    size_t limit;
+} hash_table_t;
+
+#define nacalnii_size 3000
+
+size_t hash_function(int key, size_t limit)
+{
+    return (key % limit + limit) % limit;
+}
+
+hash_table_t create_empty_table()
+{
+    hash_table_t table;
+    table.count = 0;
+    table.limit = nacalnii_size;
+    table.data = (entry_t *)calloc(table.limit, sizeof(entry_t));
+    for (size_t i = 0; i < table.limit; i++) {
+        table.data[i].valid = FALSE;  // Initialize validity
+    }
+    return table;
+}
+
+hash_table_t create_table_with_size(size_t size)
+{
+    hash_table_t table;
+    table.count = 0;
+    table.limit = size;
+    table.data = (entry_t *)calloc(table.limit, sizeof(entry_t));
+    for (size_t i = 0; i < table.limit; i++) {
+        table.data[i].valid = FALSE;
+    }
+    return table;
+}
+
+hash_table_t create_table_from_array(const int arr[], size_t size)
+{
+    hash_table_t table = create_table_with_size(size);
+    for (size_t i = 0; i < size; i++)
+    {
+        table.data[i].key = i;
+        table.data[i].value = arr[i];
+        table.data[i].valid = TRUE;
+        table.count++;
+    }
+    return table;
+}
+
+hash_table_t copy_table(const hash_table_t *original)
+{
+    hash_table_t copy = create_table_with_size(original->limit);
+    for (size_t i = 0; i < original->limit; i++)
+    {
+        copy.data[i] = original->data[i];
+    }
+    copy.count = original->count;
+    return copy;
+}
+
+void clear_table(hash_table_t *table)
+{
+    free(table->data);
+    table->data = NULL;
+    table->count = 0;
+    table->limit = 0;
+}
+
+int get_value_at(const hash_table_t *table, int index)
+{
+
+    if (table->count == 0)
+        return -1;
+
+
+    if (index < 0)
+        index += (int)table->count;
+
+
+    if (index < 0 || index >= (int)table->count || !table->data[index].valid)
+        return -1;
+
+    return table->data[index].value;
+}
+
+bool_t are_tables_equal(const hash_table_t *table1, const hash_table_t *table2)
+{
+    if (table1->count != table2->count)
+        return FALSE;
+
+    for (size_t i = 0; i < table1->limit; i++)
+    {
+        if (table1->data[i].valid != table2->data[i].valid ||
+            (table1->data[i].valid &&
+             (table1->data[i].key != table2->data[i].key ||
+              table1->data[i].value != table2->data[i].value)))
+        {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+int main(int argc, char const *argv[])
+{
+    int array[] = {1, 4, 7, 9};
+
+    hash_table_t table_a = create_table_from_array(array, 4);
+
+    assert(9 == get_value_at(&table_a, 3));
+    assert(9 == get_value_at(&table_a, -1));
+    assert(-1 == get_value_at(&table_a, 13));
+    assert(-1 == get_value_at(&table_a, -13));
+
+    hash_table_t table_b = copy_table(&table_a);
+
+    assert(are_tables_equal(&table_a, &table_b));
+
+    clear_table(&table_a);
+    clear_table(&table_b);
+
+    printf("ALL GOOD\n");
+
+    return 0;
+}
