@@ -36,7 +36,7 @@ hash_table_t create_empty_table()
     table.limit = nacalnii_size;
     table.data = (entry_t *)calloc(table.limit, sizeof(entry_t));
     for (size_t i = 0; i < table.limit; i++) {
-        table.data[i].valid = FALSE;  // Initialize validity
+        table.data[i].valid = FALSE; 
     }
     return table;
 }
